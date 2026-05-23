@@ -1,0 +1,3 @@
+# Uncomment to exclude STL build artifacts (they're large binary files)
+# *.stl
+*.DS_Store
