@@ -47,23 +47,23 @@ soff_id  = 3.2;
 // Column X:  A/G/K = 16.51   C/H/L = 140.97   F/J/M = 298.45
 // Row    Y:  K/L/M =  6.35   G/H/J =  66.04   F = 220.98   A/C = 233.68
 atx_holes = [
-  [  16, 231.68],  // A: 0.40" from IO, left column
-  [ 140.97, 231.68],  // C: 0.40" from IO, center column
-  [ 298.45, 218.98],  // F: 0.90" from IO, right column
-  [  16,  78],  // G: middle row, left column
-  [ 140.97,  78],  // H: middle row, center column
-  [ 298.45,  78],  // J: middle row, right column
-  [  16,   6],  // K: 0.25" from front, left column
-  [ 140.97,   6],  // L: 0.25" from front, center column
-  [ 298.45,   6],  // M: 0.25" from front, right column
+  [  17.5, 231],  // A: 0.40" from IO, left column
+  [ 142.5, 231],  // C: 0.40" from IO, center column
+  [ 298.45, 210],  // F: 0.90" from IO, right column
+  [  17.5,  77.2],  // G: middle row, left column
+  [ 142.5,  77.2],  // H: middle row, center column
+  [ 298.45,  77.2],  // J: middle row, right column
+  [  17.5,   5],  // K: 0.25" from front, left column
+  [ 142.5,   5],  // L: 0.25" from front, center column
+  [ 298.45,   5],  // M: 0.25" from front, right column
 ];
 
 bx0 = tw;
 by0 = tray_d - tw - atx_d - 1;  // 1mm clearance between IO edge and rear panel for GPU bracket tabs
 
-psu_xw   = 86;
+psu_xw   = 88;
 psu_yd   = 140;
-psu_zh   = 150;
+psu_zh   = 154.5;
 
 // PSU mounting hole positions — X coords are in MODEL space (front-of-case view).
 // Adam measures from the BACK, so left/right are mirrored: Adam's right = model's left.
@@ -79,9 +79,9 @@ psu_hole_tr_x =  69.7;   // model top-right   = Adam's top-left  (16mm from Adam
 psu_hole_bl_x =   5.4;   // model bottom-left = Adam's bottom-right (5.6mm from Adam's right)
 psu_hole_br_x =  80;   // model bottom-right= Adam's bottom-left  (6.5mm from Adam's left → 86-6.5)
 
-psu_hole_top_z =  145.0;  // both top holes: 5mm from top  (150 - 5)
-psu_hole_bl_z  =    7.3;  // model bottom-left  = Adam's bottom-right: 7.3mm from bottom
-psu_hole_br_z  =   31.0;  // model bottom-right = Adam's bottom-left:  31mm from bottom
+psu_hole_top_z =  150;  // both top holes: 5mm from top  (150 - 5)
+psu_hole_bl_z  =    11.5;  // model bottom-left  = Adam's bottom-right: 7.3mm from bottom
+psu_hole_br_z  =   35.5;  // model bottom-right = Adam's bottom-left:  31mm from bottom
 
 psu_holes = [
     [ psu_hole_tl_x, psu_hole_top_z ],  // top-left
@@ -92,7 +92,7 @@ psu_holes = [
 
 psu_boss_c  = 10;   // boss footprint size (square)
 psu_boss_th = 4;    // boss protrusion beyond inner face (into tray)
-psu_gap  = 12;
+psu_gap  = 12.5;
 psu_x0   = bx0 + atx_w + psu_gap;   // 320
 psu_y0   = tray_d - tw - psu_yd;
 
@@ -105,23 +105,23 @@ gpu_x0   = bx0 + pcie_bx - gpu_xw/2;
 gpu_y0   = by0 + pcie_by - 73;
 
 bkt_cut_w   = gpu_xw + 1;
-bkt_cut_h   = 121;
+bkt_cut_h   = 125;
 bkt_cut_z0  = tw;
 bkt_cut_x0  = gpu_x0 - 0.5;
 
 ret_bar_w      = bkt_cut_w + 20;
-ret_bar_h      = 10;
+ret_bar_h      = 12;
 ret_bar_d      = tw + 2;
 ret_screw_d    = 3.4;
-ret_bar_z0     = bkt_cut_z0 + bkt_cut_h;
+ret_bar_z0     = bkt_cut_z0 + bkt_cut_h-3;
 ret_boss_inset = 8;   // how far bosses protrude INWARD from inner panel face
 
 ret_lip_d   = 8;    // lip protrusion depth — extended to sit over GPU bracket (was 3mm)
 ret_lip_h   = 4;    // lip thickness (Z)
 ret_gpu_screw_d = 3.2;          // M3 clearance for GPU bracket screws
-ret_gpu_screw_sp = 20.5;        // center-to-center spacing of GPU bracket holes
+ret_gpu_screw_sp = 18;        // center-to-center spacing of GPU bracket holes
 
-tab_sw  = 10.5;
+tab_sw  = 18;
 tab_sd  = 5;
 tab_x   = [gpu_x0 + gpu_xw*0.25, gpu_x0 + gpu_xw*0.75];
 
@@ -220,23 +220,23 @@ module honeycomb(w, h, depth, r=hc_r, wall=hc_w) {
 
 module xj_floor_L(y0, y1) {         // LEFT tabs protruding +X
     n = floor((y1-y0)/fj_w);
-    for (i=[0:n-1]) if (i%2==0)
+    for (i=[0:n-1]) if (i%2==1)
         translate([cut_x, y0+i*fj_w, 0]) cube([fj_d, fj_w, tw]);
 }
 module xj_floor_L_sock(y0, y1) {    // LEFT sockets (receive R tabs)
     n = floor((y1-y0)/fj_w);
-    for (i=[0:n-1]) if (i%2==1)
+    for (i=[0:n-1]) if (i%2==0)
         translate([cut_x-fj_d-0.01, y0+i*fj_w-fj_fit, -0.01])
             cube([fj_d+0.02, fj_w+2*fj_fit, tw+0.02]);
 }
 module xj_floor_R(y0, y1) {         // RIGHT tabs protruding -X
     n = floor((y1-y0)/fj_w);
-    for (i=[0:n-1]) if (i%2==1)
+    for (i=[0:n-1]) if (i%2==0)
         translate([cut_x-fj_d, y0+i*fj_w, 0]) cube([fj_d, fj_w, tw]);
 }
 module xj_floor_R_sock(y0, y1) {    // RIGHT sockets (receive L tabs)
     n = floor((y1-y0)/fj_w);
-    for (i=[0:n-1]) if (i%2==0)
+    for (i=[0:n-1]) if (i%2==1)
         translate([cut_x-0.01, y0+i*fj_w-fj_fit, -0.01])
             cube([fj_d+0.02, fj_w+2*fj_fit, tw+0.02]);
 }
@@ -247,23 +247,23 @@ module xj_floor_R_sock(y0, y1) {    // RIGHT sockets (receive L tabs)
 
 module yj_floor_F(x0, x1) {         // FRONT tabs protruding +Y
     n = floor((x1-x0)/fj_w);
-    for (i=[0:n-1]) if (i%2==0)
+    for (i=[0:n-1]) if (i%2==1)
         translate([x0+i*fj_w, cut_y, 0]) cube([fj_w, fj_d, tw]);
 }
 module yj_floor_F_sock(x0, x1) {    // FRONT sockets (receive R tabs)
     n = floor((x1-x0)/fj_w);
-    for (i=[0:n-1]) if (i%2==1)
+    for (i=[0:n-1]) if (i%2==0)
         translate([x0+i*fj_w-fj_fit, cut_y-fj_d-0.01, -0.01])
             cube([fj_w+2*fj_fit, fj_d+0.02, tw+0.02]);
 }
 module yj_floor_R(x0, x1) {         // REAR tabs protruding -Y
     n = floor((x1-x0)/fj_w);
-    for (i=[0:n-1]) if (i%2==1)
+    for (i=[0:n-1]) if (i%2==0)
         translate([x0+i*fj_w, cut_y-fj_d, 0]) cube([fj_w, fj_d, tw]);
 }
 module yj_floor_R_sock(x0, x1) {    // REAR sockets (receive F tabs)
     n = floor((x1-x0)/fj_w);
-    for (i=[0:n-1]) if (i%2==0)
+    for (i=[0:n-1]) if (i%2==1)
         translate([x0+i*fj_w-fj_fit, cut_y-0.01, -0.01])
             cube([fj_w+2*fj_fit, fj_d+0.02, tw+0.02]);
 }
@@ -421,7 +421,7 @@ module rear_panel_solid() {
             difference() {
                 cube([tray_w, tw, rack_h]);
                 // IO shield opening
-                translate([io_x0, -0.1, io_z0]) cube([io_w, tw+0.2, io_h]);
+                translate([io_x0, -0.1, io_z0-1]) cube([io_w, tw+0.2, io_h+1]);
                 // PSU opening — 3 cuts that preserve 10mm corners
                 translate([psu_x0,       -0.1, tw+psu_c])        cube([psu_xw,          tw+0.2, psu_zh-2*psu_c]);
                 translate([psu_x0+psu_c, -0.1, tw])               cube([psu_xw-2*psu_c, tw+0.2, psu_c]);
@@ -437,8 +437,8 @@ module rear_panel_solid() {
             translate([psu_x0 + h[0], -boss_th-0.1, tw + h[1]])
                 rotate([-90,0,0]) cylinder(h=tw+boss_th+0.2, d=m4_d, $fn=16);
         // Retainer bar screw holes through rear panel (bosses are separate geometry, inward)
-        for (bx = [bkt_cut_x0-7, bkt_cut_x0+bkt_cut_w+7])
-            translate([bx, -0.1, ret_bar_z0+ret_bar_h/2])
+        for (bx = [bkt_cut_x0-3, bkt_cut_x0+bkt_cut_w+3])
+            translate([bx, -0.1, (ret_bar_z0+ret_bar_h/2)])
                 rotate([-90,0,0]) cylinder(h=tw+0.2, d=ret_screw_d, $fn=12);
         // ── Honeycomb venting ───────────────────────────────────────────────────
         // Zone A: left of PCIe bracket opening
@@ -470,12 +470,12 @@ module retainer_bar_bosses() {
     difference() {
         union() {
             // Bosses on the INSIDE (−Y from inner face = tray_d−tw, protrude inward)
-            translate([bkt_cut_x0-12,          tray_d-tw-ret_boss_inset, ret_bar_z0-1]) cube([10, ret_boss_inset, ret_bar_h+2]);
-            translate([bkt_cut_x0+bkt_cut_w+2, tray_d-tw-ret_boss_inset, ret_bar_z0-1]) cube([10, ret_boss_inset, ret_bar_h+2]);
+            translate([bkt_cut_x0-7.5,          tray_d-tw-ret_boss_inset, ret_bar_z0+1]) cube([7.5, ret_boss_inset, ret_bar_h-1]);
+            translate([bkt_cut_x0+bkt_cut_w, tray_d-tw-ret_boss_inset, ret_bar_z0+1]) cube([7.5, ret_boss_inset, ret_bar_h-1]);
         }
         // Clearance holes drilled from outside (outer face) through panel and full boss depth
-        for (bx = [bkt_cut_x0-7, bkt_cut_x0+bkt_cut_w+7])
-            translate([bx, tray_d-tw-ret_boss_inset-0.1, ret_bar_z0+ret_bar_h/2])
+        for (bx = [bkt_cut_x0-3, bkt_cut_x0+bkt_cut_w+3])
+            translate([bx, tray_d-tw-ret_boss_inset-0.1, (ret_bar_z0+ret_bar_h/2)])
                 rotate([-90,0,0]) cylinder(h=tw+ret_boss_inset+0.2, d=ret_screw_d, $fn=12);
     }
 }
@@ -576,7 +576,7 @@ module gpu_retainer_bar() {
             }
         // GPU bracket screw holes — through lip in Z, 20.5mm apart, centered on bar
         for (gx = [ret_bar_w/2 - ret_gpu_screw_sp/2, ret_bar_w/2 + ret_gpu_screw_sp/2])
-            translate([gx, ret_bar_d + ret_lip_d/2, -0.1])
+            translate([gx+5, ret_bar_d + ret_lip_d/2, -0.1])
                 cylinder(h=ret_lip_h+0.2, d=ret_gpu_screw_d, $fn=12);
     }
 }
@@ -654,6 +654,9 @@ module tray_FL() {
             // Left rack ear fused in — no separate ear piece needed
             translate([-ear_w, 0, 0]) rack_ear();
             translate([0, 0, tw]) cube([tw, tw, rack_h-tw]);  // front-face gap fill
+            // G standoff (atx_holes[3]) lands in RL's yj socket zone and floats there.
+            // Place it here on FL's tab instead — it sits squarely on the i=1 tab (X=18–36, Y=175–181).
+            translate([bx0 + atx_holes[3][0], by0 + atx_holes[3][1], tw]) standoff();
         }
         xj_floor_L_sock(0, cut_y);      // floor sockets for FR's tabs
         yj_floor_F_sock(0, cut_x);      // floor sockets for RL's tabs
@@ -703,6 +706,9 @@ module tray_RL() {
         xj_floor_L_sock(cut_y, tray_d); // floor sockets for RR's tabs
         yj_floor_R_sock(0, cut_x);       // floor sockets for FL's tabs
         left_rail_groove();               // rail groove receives FL's tongue
+        // Remove G standoff — it's floating here (floor cut by yj socket). Moved to FL's tab.
+        translate([bx0 + atx_holes[3][0], by0 + atx_holes[3][1], tw])
+            cylinder(h=soff_h+0.1, d=soff_od+0.1, $fn=24);
     }
 }
 
