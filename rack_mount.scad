@@ -287,9 +287,10 @@ module front_panel_groove() {
 
 // ── Rear panel seam at X=cut_x ────────────────────────────────────────────────
 // RL has the tongue; RR has the groove.
-// Tab Z positions are in the solid border zones above and below the honeycomb
-// (honeycomb spans hc_mg=12mm to rack_h-hc_mg=165.8mm).
-rp_tab_z = [hc_mg/2, rack_h - hc_mg/2];  // z=6mm (bottom) and z=171.8mm (top)
+// Tab Z positions are in the solid border zones above and below the honeycomb.
+// Zone D (above IO shield) spans io_z0+io_h+hc_mg=68mm to rack_h-hc_mg=165.8mm.
+// Three tabs: bottom (6mm), below Zone D in the 12mm margin (62mm), top (171.8mm).
+rp_tab_z = [hc_mg/2, io_z0 + io_h + hc_mg/2, rack_h - hc_mg/2];
 
 module rear_panel_tongue() {
     for (z = rp_tab_z)
@@ -458,9 +459,15 @@ module rear_panel_solid() {
         if (rp_zone_c_x1 > rp_zone_c_x0 + hc_mg)
             translate([rp_zone_c_x0, 0, hc_mg])
                 honeycomb(rp_zone_c_x1-rp_zone_c_x0, rack_h-2*hc_mg, tw);
-        // Zone D: directly above IO shield opening — full IO opening width
-        translate([io_x0 + hc_mg, 0, io_z0 + io_h + hc_mg])
-            honeycomb(io_w - 2*hc_mg, rack_h - io_z0 - io_h - 2*hc_mg, tw);
+        // Zone D: above IO shield — split at cut_x so each half is self-contained within its piece.
+        // D-L lives entirely in RL (X=162..210), D-R entirely in RR (X=234..303).
+        // 12mm solid margin at the seam prevents partial hexes hanging off the edge.
+        if (cut_x - hc_mg > io_x0 + hc_mg)
+            translate([io_x0 + hc_mg, 0, io_z0 + io_h + hc_mg])
+                honeycomb(cut_x - hc_mg - (io_x0 + hc_mg), rack_h - io_z0 - io_h - 2*hc_mg, tw);
+        if (io_x0 + io_w - hc_mg > cut_x + hc_mg)
+            translate([cut_x + hc_mg, 0, io_z0 + io_h + hc_mg])
+                honeycomb((io_x0 + io_w - hc_mg) - (cut_x + hc_mg), rack_h - io_z0 - io_h - 2*hc_mg, tw);
     }
 }
 
