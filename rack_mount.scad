@@ -125,7 +125,7 @@ pbar_lip_h  = 4;                              // lip height (Z)
 
 tab_sw  = 18;
 tab_sd  = 5;
-tab_x   = [gpu_x0 + gpu_xw*0.25, gpu_x0 + gpu_xw*0.75];
+tab_x   = [for (i = [0:pcie_n-1]) pcie_x0 + i*pcie_pitch + pcie_bw/2];
 
 btn_d    = 16.4;  // 16mm panel-mount power button + 0.4mm clearance
 btn_cx   = 30;   // X: bottom-left, in the solid band below the fans
