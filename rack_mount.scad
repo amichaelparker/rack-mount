@@ -120,7 +120,7 @@ pbar_w      = pcie_n * pcie_pitch;            // bar width = 121.92mm
 pbar_h      = 16;                             // bar height (screw-tab zone)
 pbar_d      = tw - 1;                         // bar thickness = 3mm
 pbar_z0     = bkt_cut_z0 + pcie_oh - 1;      // bar bottom Z = 114mm
-pbar_lip_d  = 6;                              // lip protrudes inward — bracket tabs rest on it
+pbar_lip_d  = 14;                             // lip protrudes inward — must cover ATX bracket tab (~12mm)
 pbar_lip_h  = 4;                              // lip height (Z)
 
 tab_sw  = 18;
@@ -458,12 +458,9 @@ module rear_panel_solid() {
             translate([psu_x0 + h[0], -boss_th-0.1, tw + h[1]])
                 rotate([-90,0,0]) cylinder(h=tw+boss_th+0.2, d=m4_d, $fn=16);
         // Retention bar mounting holes — 3 screws at divider centres, screw-tab zone
+        // (per-slot bracket thumbscrews go through the bar lip in Z, NOT through this panel)
         for (i = [1, 3, 5])
             translate([pcie_x0 + i*pcie_pitch - 0.95, -0.1, pbar_z0 + pbar_h/2])
-                rotate([-90,0,0]) cylinder(h=tw+0.2, d=pcie_scr_d, $fn=12);
-        // Per-slot bracket thumbscrew holes — 1 per slot at slot-centre X, screw-tab zone
-        for (i = [0:pcie_n-1])
-            translate([pcie_x0 + i*pcie_pitch + pcie_bw/2, -0.1, pbar_z0 + pbar_h/2])
                 rotate([-90,0,0]) cylinder(h=tw+0.2, d=pcie_scr_d, $fn=12);
         // ── Honeycomb venting ───────────────────────────────────────────────────
         // Zone A: left of PCIe bracket opening
@@ -588,14 +585,15 @@ module pcie_retention_bar() {
             // Lip at bottom protrudes inward (−Y from inner face) — bracket tabs rest here
             translate([0, -pbar_lip_d, 0]) cube([pbar_w, pbar_lip_d, pbar_lip_h]);
         }
-        // 3 bar mounting holes centred in dividers between slots (i=1,3,5)
+        // 3 bar mounting holes at divider centres — screws come from outside through rear panel
         for (i = [1, 3, 5])
             translate([i*pcie_pitch - 0.95, -0.1, pbar_h/2])
                 rotate([-90,0,0]) cylinder(h=pbar_d+0.2, d=pcie_scr_d, $fn=12);
-        // 6 per-slot bracket thumbscrew holes at slot-centre X
+        // 6 per-slot bracket thumbscrew holes — drill Z-down through the lip from inside
+        // Screw comes from above (inside case), through lip, into bracket screw tab below
         for (i = [0:pcie_n-1])
-            translate([i*pcie_pitch + pcie_bw/2, -0.1, pbar_h/2])
-                rotate([-90,0,0]) cylinder(h=pbar_d+0.2, d=pcie_scr_d, $fn=12);
+            translate([i*pcie_pitch + pcie_bw/2, -pbar_lip_d/2, -0.1])
+                cylinder(h=pbar_lip_h+0.2, d=pcie_scr_d, $fn=12);
     }
 }
 
