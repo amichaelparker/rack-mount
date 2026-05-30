@@ -59,7 +59,8 @@ atx_holes = [
 ];
 
 bx0 = tw;
-by0 = tray_d - tw - atx_d - 1;  // 1mm clearance between IO edge and rear panel for GPU bracket tabs
+board_rear_gap = 9;  // clearance between board IO edge and rear panel inner face (bracket tab + retention bar clearance)
+by0 = tray_d - tw - atx_d - board_rear_gap;
 
 psu_xw   = 88;
 psu_yd   = 140;
@@ -111,8 +112,8 @@ pcie_pitch  = 20.32;                          // 0.800" standard ATX pitch
 pcie_bw     = 18.42;                          // slot opening width (0.725")
 pcie_x0     = gpu_x0 - (pcie_n-2)*pcie_pitch;// left edge of slot zone ≈ 12.4mm
 bkt_cut_z0  = tw;                             // slot zone bottom Z
-bkt_cut_h   = 125;                            // total slot zone height (kept for Z refs)
-pcie_oh     = bkt_cut_h - 14;                 // slot opening height = 111mm; 14mm screw-tab above
+bkt_cut_h   = 136;                            // total slot zone height (kept for Z refs)
+pcie_oh     = bkt_cut_h - 14;                 // slot opening height = 122mm; 14mm screw-tab above
 pcie_scr_d  = 3.4;                            // M3 clearance — bracket & bar retention screws
 
 // Retention bar — spans all 6 slots, mounts on inner face of rear panel
@@ -124,7 +125,7 @@ pbar_lip_d  = 14;                             // lip protrudes inward — must c
 pbar_lip_h  = 4;                              // lip height (Z)
 
 tab_sw  = 18;
-tab_sd  = 5;
+tab_sd  = 10;
 tab_x   = [for (i = [0:pcie_n-1]) pcie_x0 + i*pcie_pitch + pcie_bw/2];
 
 btn_d    = 16.4;  // 16mm panel-mount power button + 0.4mm clearance
@@ -502,10 +503,9 @@ module rear_panel_solid() {
                 translate([psu_x0,       -0.1, tw+psu_c])        cube([psu_xw,          tw+0.2, psu_zh-2*psu_c]);
                 translate([psu_x0+psu_c, -0.1, tw])               cube([psu_xw-2*psu_c, tw+0.2, psu_c]);
                 translate([psu_x0+psu_c, -0.1, tw+psu_zh-psu_c]) cube([psu_xw-2*psu_c, tw+0.2, psu_c]);
-                // PCIe expansion slots — 6 openings at standard ATX pitch, dividers between
-                for (i = [0:pcie_n-1])
-                    translate([pcie_x0 + i*pcie_pitch, -0.1, bkt_cut_z0])
-                        cube([pcie_bw, tw+0.2, pcie_oh]);
+                // PCIe expansion zone — one wide opening, no dividers (thin columns unprintable)
+                translate([pcie_x0, -0.1, bkt_cut_z0])
+                    cube([pcie_n * pcie_pitch, tw+0.2, pcie_oh]);
             }
             // PSU mounting bosses — L-shaped bridges so no boss floats in the opening
             for (h = psu_holes) psu_boss_bridge(h);
