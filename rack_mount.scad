@@ -852,6 +852,37 @@ module tray_RR() {
     }
 }
 
+// ─── STANDOFF TEST JIGS ────────────────────────────────────────────────────────
+// Quick-print position-verification jigs: 2mm base + standoffs only (~1-2 hr print).
+// Place jig flat on table, set board on top, verify holes align before committing to
+// a full 9-hour section print.
+
+module standoff_jig_L() {
+    jig_th = 2;
+    pad    = 10;
+    // Left + middle columns: A,C,G,H,K,L (board X = 16.51 / 140.97)
+    L_holes = [atx_holes[0], atx_holes[1], atx_holes[3], atx_holes[4], atx_holes[6], atx_holes[7]];
+    jig_x = atx_holes[1][0] + pad;   // 140.97 + 10 ≈ 151mm
+    jig_y = atx_holes[0][1] + pad;   // 233.68 + 10 ≈ 244mm
+    cube([jig_x, jig_y, jig_th]);
+    for (pt = L_holes)
+        translate([pt[0], pt[1], jig_th]) standoff();
+}
+
+module standoff_jig_R() {
+    jig_th = 2;
+    pad    = 10;
+    // Right column only: F,J,M (board X = 298.45) — shifted so column lands at X=pad.
+    // To align on real board: jig left edge goes at X = 298.45 - pad = 288.45mm from board left.
+    R_holes = [atx_holes[2], atx_holes[5], atx_holes[8]];
+    x_off   = atx_holes[2][0] - pad;   // 288.45mm shift
+    jig_x   = pad + soff_od + pad;     // ~27mm wide
+    jig_y   = atx_holes[2][1] + pad;   // 220.98 + 10 ≈ 231mm
+    cube([jig_x, jig_y, jig_th]);
+    for (pt = R_holes)
+        translate([pt[0] - x_off, pt[1], jig_th]) standoff();
+}
+
 // ─── RENDER SELECTION ─────────────────────────────────────────────────────────
 // Uncomment ONE section → F6 → Export as STL.  Print floor-face-down.
 // tray_FL and tray_FR include their rack ears — no separate ear print needed (Bambu P1S bed).
@@ -865,3 +896,5 @@ translate([0, -cut_y, 0])      tray_RL();
 //pcie_retention_bar();               // interior retention bar — install before cards; 3×M3 to panel + 6×thumbscrews
 //pcie_slot_cover();                  // blank cover — print 4× for unused slots
 //rack_ear();   // standalone ear (no longer needed — fused into FL/FR)
+//standoff_jig_L();   // left+middle columns A,C,G,H,K,L — ~151×244mm, ~1-2hr print
+//standoff_jig_R();   // right column F,J,M only — ~27×231mm (align at X=288.45mm from board left)
