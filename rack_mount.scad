@@ -311,87 +311,93 @@ lr_tab_z = [rack_h * 0.33, rack_h * 0.67];
 
 // ── Front panel seam (X=cut_x, bolt in X, boss protrudes +Y from panel) ──────
 
-module fp_seam_bolt_L(z) {    // FL — clearance + head counterbore
+module fp_seam_bolt_L(z) {    // FL — nut-trap (buried inside FL, open at +Z)
     difference() {
-        translate([cut_x - bj_w, tw, z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
-        translate([cut_x - bj_w - 0.1, tw + bj_d/2, z]) rotate([0,90,0]) {
+        translate([cut_x - bj_nt_d, tw, z - bj_h/2]) cube([bj_nt_d, bj_d, bj_h]);
+        // clearance hole — bolt shaft from FR passes all the way through
+        translate([cut_x - bj_nt_d - 0.1, tw + bj_d/2, z]) rotate([0,90,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        // hex nut slot — centered in boss, open at +Z so nut drops in before assembly
+        translate([cut_x - bj_nt_d + (bj_nt_d - bj_nh)/2, tw + bj_d/2 - bj_nw/2, z - bj_nh/2])
+            cube([bj_nh, bj_nw, bj_h/2 + bj_nh/2 + 0.1]);
+    }
+}
+module fp_seam_bolt_R(z) {    // FR — clearance + head counterbore (accessible from FR interior)
+    difference() {
+        translate([cut_x, tw, z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
+        translate([cut_x + bj_w + 0.1, tw + bj_d/2, z]) rotate([0,-90,0]) {
             cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
             cylinder(h=bj_csz,   d=bj_csd, $fn=24);
         }
-    }
-}
-module fp_seam_bolt_R(z) {    // FR — nut-trap slot open at +Z
-    difference() {
-        translate([cut_x, tw, z - bj_h/2]) cube([bj_nt_d, bj_d, bj_h]);
-        // clearance hole
-        translate([cut_x - 0.1, tw + bj_d/2, z]) rotate([0,90,0])
-            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
-        // hex nut slot — open at top so nut drops in before assembly
-        translate([cut_x, tw + bj_d/2 - bj_nw/2, z - bj_nh/2])
-            cube([bj_nh, bj_nw, bj_h/2 + bj_nh/2 + 0.1]);
     }
 }
 
 // ── Rear panel seam (X=cut_x, bolt in X, boss protrudes −Y from panel) ───────
 
-module rp_seam_bolt_L(z) {    // RL — clearance + head counterbore
+module rp_seam_bolt_L(z) {    // RL — nut-trap (buried inside RL, open at +Z)
     difference() {
-        translate([cut_x - bj_w, tray_d - tw - bj_d, 2+z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
-        translate([cut_x - bj_w - 0.1, tray_d - tw - bj_d/2, z]) rotate([0,90,0]) {
+        translate([cut_x - bj_nt_d, tray_d - tw - bj_d, z - bj_h/2]) cube([bj_nt_d, bj_d, bj_h]);
+        // clearance hole — bolt shaft from RR passes all the way through
+        translate([cut_x - bj_nt_d - 0.1, tray_d - tw - bj_d/2, z]) rotate([0,90,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        // hex nut slot — centered in boss, open at +Z so nut drops in before assembly
+        translate([cut_x - bj_nt_d + (bj_nt_d - bj_nh)/2, tray_d - tw - bj_d/2 - bj_nw/2, z - bj_nh/2])
+            cube([bj_nh, bj_nw, bj_h/2 + bj_nh/2 + 0.1]);
+    }
+}
+module rp_seam_bolt_R(z) {    // RR — clearance + head counterbore (accessible from RR interior)
+    difference() {
+        translate([cut_x, tray_d - tw - bj_d, z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
+        translate([cut_x + bj_w + 0.1, tray_d - tw - bj_d/2, z]) rotate([0,-90,0]) {
             cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
             cylinder(h=bj_csz,   d=bj_csd, $fn=24);
         }
-    }
-}
-module rp_seam_bolt_R(z) {    // RR — nut-trap slot open at +Z
-    difference() {
-        translate([cut_x, tray_d - tw - bj_d, z - bj_h/2]) cube([bj_nt_d, bj_d, bj_h]);
-        translate([cut_x - 0.1, tray_d - tw - bj_d/2, z]) rotate([0,90,0])
-            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
-        translate([cut_x, tray_d - tw - bj_d/2 - bj_nw/2, z - bj_nh/2])
-            cube([bj_nh, bj_nw, bj_h/2 + bj_nh/2 + 0.1]);
     }
 }
 
 // ── Left rail seam (Y=cut_y, bolt in Y, boss protrudes +X from rail) ─────────
 
-module lr_seam_bolt_F(z) {    // FL — clearance + head counterbore
+module lr_seam_bolt_F(z) {    // FL — nut-trap (buried inside FL, open at +Z)
     difference() {
-        translate([tw, cut_y - bj_w, z - bj_h/2]) cube([bj_d, bj_w, bj_h]);
-        translate([tw + bj_d/2, cut_y - bj_w - 0.1, z]) rotate([-90,0,0]) {
+        translate([tw, cut_y - bj_nt_d, z - bj_h/2]) cube([bj_d, bj_nt_d, bj_h]);
+        // clearance hole — bolt shaft from RL passes all the way through
+        translate([tw + bj_d/2, cut_y - bj_nt_d - 0.1, z]) rotate([-90,0,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        // hex nut slot — centered in boss, open at +Z so nut drops in before assembly
+        translate([tw + bj_d/2 - bj_nw/2, cut_y - bj_nt_d + (bj_nt_d - bj_nh)/2, z - bj_nh/2])
+            cube([bj_nw, bj_nh, bj_h/2 + bj_nh/2 + 0.1]);
+    }
+}
+module lr_seam_bolt_R(z) {    // RL — clearance + head counterbore (accessible from RL interior)
+    difference() {
+        translate([tw, cut_y, z - bj_h/2]) cube([bj_d, bj_w, bj_h]);
+        translate([tw + bj_d/2, cut_y + bj_w + 0.1, z]) rotate([90,0,0]) {
             cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
             cylinder(h=bj_csz,   d=bj_csd, $fn=24);
         }
-    }
-}
-module lr_seam_bolt_R(z) {    // RL — nut-trap slot open at +Z
-    difference() {
-        translate([tw, cut_y, z - bj_h/2]) cube([bj_d, bj_nt_d, bj_h]);
-        translate([tw + bj_d/2, cut_y - 0.1, z]) rotate([-90,0,0])
-            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
-        translate([tw + bj_d/2 - bj_nw/2, cut_y, z - bj_nh/2])
-            cube([bj_nw, bj_nh, bj_h/2 + bj_nh/2 + 0.1]);
     }
 }
 
 // ── Right rail seam (Y=cut_y, bolt in Y, boss protrudes −X from rail) ────────
 
-module rr_seam_bolt_F(z) {    // FR — clearance + head counterbore
+module rr_seam_bolt_F(z) {    // FR — nut-trap (buried inside FR, open at +Z)
     difference() {
-        translate([tray_w - tw - bj_d, cut_y - bj_w, z - bj_h/2]) cube([bj_d, bj_w, bj_h]);
-        translate([tray_w - tw - bj_d/2, cut_y - bj_w - 0.1, z]) rotate([-90,0,0]) {
+        translate([tray_w - tw - bj_d, cut_y - bj_nt_d, z - bj_h/2]) cube([bj_d, bj_nt_d, bj_h]);
+        // clearance hole — bolt shaft from RR passes all the way through
+        translate([tray_w - tw - bj_d/2, cut_y - bj_nt_d - 0.1, z]) rotate([-90,0,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        // hex nut slot — centered in boss, open at +Z so nut drops in before assembly
+        translate([tray_w - tw - bj_d/2 - bj_nw/2, cut_y - bj_nt_d + (bj_nt_d - bj_nh)/2, z - bj_nh/2])
+            cube([bj_nw, bj_nh, bj_h/2 + bj_nh/2 + 0.1]);
+    }
+}
+module rr_seam_bolt_R(z) {    // RR — clearance + head counterbore (accessible from RR interior)
+    difference() {
+        translate([tray_w - tw - bj_d, cut_y, z - bj_h/2]) cube([bj_d, bj_w, bj_h]);
+        translate([tray_w - tw - bj_d/2, cut_y + bj_w + 0.1, z]) rotate([90,0,0]) {
             cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
             cylinder(h=bj_csz,   d=bj_csd, $fn=24);
         }
-    }
-}
-module rr_seam_bolt_R(z) {    // RR — nut-trap slot open at +Z
-    difference() {
-        translate([tray_w - tw - bj_d, cut_y, z - bj_h/2]) cube([bj_d, bj_nt_d, bj_h]);
-        translate([tray_w - tw - bj_d/2, cut_y - 0.1, z]) rotate([-90,0,0])
-            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
-        translate([tray_w - tw - bj_d/2 - bj_nw/2, cut_y, z - bj_nh/2])
-            cube([bj_nw, bj_nh, bj_h/2 + bj_nh/2 + 0.1]);
     }
 }
 
