@@ -855,21 +855,24 @@ module tray_RR() {
 // ─── STANDOFF TEST JIGS ────────────────────────────────────────────────────────
 // Two-piece jig: print separately, snap together at the same X=cut_x seam the real
 // case uses.  Assembled geometry encodes all 9 standoff positions — no manual
-// measuring to align the pieces.  Place board on top, verify all holes seat.
+// measuring to align the pieces.
 //
-// jig_L: 222×247mm  (~1-2 hr)   jig_R: ~97×247mm   (~30 min)
-// Both print floor-face-down, fit on the P1S 256mm bed.
+// Reference walls (5mm tall):
+//   Left wall  — inner face at X=bx0 (board left edge reference)
+//   Rear wall  — inner face at board IO edge; seat the IO edge flush against it,
+//                then check all 9 standoffs align with the board holes.
 //
-// Assembly: hold pieces flat, slide jig_R tabs into jig_L sockets from the side
-// (same motion as assembling the case floor sections).
+// jig_L: 222×249mm  jig_R: ~94×249mm   Both fit on the P1S 256mm bed.
+// Assembly: hold flat, slide jig_R tabs into jig_L sockets from the side.
 
 module standoff_jig_L() {
-    jig_th = 2;
-    pad    = 10;
-    // Y offset: shift jig so lowest standoff (K, board Y=6.35) sits pad mm from edge.
-    y_off  = by0 + atx_holes[6][1] - pad;  // ≈89.5mm
-    y_h    = by0 + atx_holes[0][1] + pad - y_off;  // ≈247mm
-    n      = floor(y_h / fj_w);
+    wall_h   = 5;
+    jig_th   = 2;
+    pad      = 8;
+    y_off    = by0 + atx_holes[6][1] - pad;   // case Y of jig bottom edge (≈91.5mm)
+    io_y     = by0 + atx_d - y_off;            // board IO edge in jig Y (≈245mm)
+    y_h      = io_y + tw;                       // plate extends tw past IO ref wall (≈249mm)
+    n        = floor(y_h / fj_w);
 
     L_holes = [atx_holes[0], atx_holes[1], atx_holes[3], atx_holes[4], atx_holes[6], atx_holes[7]];
 
@@ -879,6 +882,10 @@ module standoff_jig_L() {
             // box joint tabs on right edge: odd-index, protrude +X
             for (i = [0:n-1]) if (i%2 == 1)
                 translate([cut_x, i*fj_w, 0]) cube([fj_d, fj_w, jig_th]);
+            // left reference wall — inner face at X=bx0, board left edge goes here
+            translate([0, 0, jig_th]) cube([bx0, y_h, wall_h]);
+            // rear reference wall — inner face at io_y, seat board IO edge flush here
+            translate([0, io_y, jig_th]) cube([cut_x, tw, wall_h]);
         }
         // sockets for jig_R's tabs: even-index, cut into right edge
         for (i = [0:n-1]) if (i%2 == 0)
@@ -890,14 +897,16 @@ module standoff_jig_L() {
 }
 
 module standoff_jig_R() {
+    wall_h   = 5;
     jig_th   = 2;
-    pad      = 10;
-    y_off    = by0 + atx_holes[6][1] - pad;  // same origin as jig_L
-    y_h      = by0 + atx_holes[0][1] + pad - y_off;
+    pad      = 8;
+    y_off    = by0 + atx_holes[6][1] - pad;   // same origin as jig_L
+    io_y     = by0 + atx_d - y_off;
+    y_h      = io_y + tw;
     n        = floor(y_h / fj_w);
     // Plate starts at X=fj_d so the leftward tabs land at X=0 (printable without negatives).
     plate_x0 = fj_d;
-    plate_w  = (bx0 + atx_holes[2][0] + pad) - cut_x;  // ≈90mm
+    plate_w  = (bx0 + atx_holes[2][0] + pad) - cut_x;  // ≈88mm
 
     R_holes = [atx_holes[2], atx_holes[5], atx_holes[8]];
 
@@ -907,6 +916,8 @@ module standoff_jig_R() {
             // box joint tabs on left edge: even-index, protrude -X from seam face
             for (i = [0:n-1]) if (i%2 == 0)
                 translate([0, i*fj_w, 0]) cube([fj_d, fj_w, jig_th]);
+            // rear reference wall — continuous with jig_L's when assembled
+            translate([plate_x0, io_y, jig_th]) cube([plate_w, tw, wall_h]);
         }
         // sockets for jig_L's tabs: odd-index, cut into left edge of plate
         for (i = [0:n-1]) if (i%2 == 1)
@@ -931,5 +942,5 @@ translate([0, -cut_y, 0])      tray_RL();
 //pcie_retention_bar();               // interior retention bar — install before cards; 3×M3 to panel + 6×thumbscrews
 //pcie_slot_cover();                  // blank cover — print 4× for unused slots
 //rack_ear();   // standalone ear (no longer needed — fused into FL/FR)
-//standoff_jig_L();   // left+middle columns A,C,G,H,K,L — ~151×244mm, ~1-2hr print
-//standoff_jig_R();   // right column F,J,M only — ~27×231mm (align at X=288.45mm from board left)
+//standoff_jig_L();   // left+middle columns + L/rear ref walls — 222×249mm, ~1-2hr
+//standoff_jig_R();   // right column F,J,M + rear ref wall — ~94×249mm, ~30min; snap into jig_L
