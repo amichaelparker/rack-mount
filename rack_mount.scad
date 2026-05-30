@@ -48,14 +48,14 @@ soff_id  = 3.2;
 // Row    Y:  K/L/M =  6.35   G/H/J =  66.04   F = 220.98   A/C = 233.68
 atx_holes = [
   [  17.5, 231],  // A: 0.40" from IO, left column
-  [ 142.5, 231],  // C: 0.40" from IO, center column
-  [ 298.45, 210],  // F: 0.90" from IO, right column
-  [  17.5,  77.2],  // G: middle row, left column
-  [ 142.5,  77.2],  // H: middle row, center column
-  [ 298.45,  77.2],  // J: middle row, right column
-  [  17.5,   5],  // K: 0.25" from front, left column
-  [ 142.5,   5],  // L: 0.25" from front, center column
-  [ 298.45,   5],  // M: 0.25" from front, right column
+  [ 143.5, 229.5],  // C: 0.40" from IO, center column
+  [ 299.45, 210],  // F: 0.90" from IO, right column
+  [  18.5,  75.5],  // G: middle row, left column
+  [ 143.5,  75.5],  // H: middle row, center column
+  [ 299.45,  75.5],  // J: middle row, right column
+  [  18.5,   4],  // K: 0.25" from front, left column
+  [ 143.5,   4],  // L: 0.25" from front, center column
+  [ 299.45,   4],  // M: 0.25" from front, right column
 ];
 
 bx0 = tw;
@@ -63,7 +63,7 @@ by0 = tray_d - tw - atx_d - 1;  // 1mm clearance between IO edge and rear panel 
 
 psu_xw   = 88;
 psu_yd   = 140;
-psu_zh   = 154.5;
+psu_zh   = 153;
 
 // PSU mounting hole positions — X coords are in MODEL space (front-of-case view).
 // Adam measures from the BACK, so left/right are mirrored: Adam's right = model's left.
@@ -74,14 +74,14 @@ psu_zh   = 154.5;
 //   bottom-right (5.6mm from Adam-right, 7.3mm up)  →  5.6mm from model-left
 //   bottom-left  (6.5mm from Adam-left, 31mm up)    →  86-6.5 = 79.5mm from model-left
 
-psu_hole_tl_x =   5.4;   // model top-left    = Adam's top-right (confirmed correct)
-psu_hole_tr_x =  69.7;   // model top-right   = Adam's top-left  (16mm from Adam's left)
-psu_hole_bl_x =   5.4;   // model bottom-left = Adam's bottom-right (5.6mm from Adam's right)
-psu_hole_br_x =  80;   // model bottom-right= Adam's bottom-left  (6.5mm from Adam's left → 86-6.5)
+psu_hole_tl_x =   6.5;   // model top-left    = Adam's top-right (confirmed correct)
+psu_hole_tr_x =  71;   // model top-right   = Adam's top-left  (16mm from Adam's left)
+psu_hole_bl_x =   6.5;   // model bottom-left = Adam's bottom-right (5.6mm from Adam's right)
+psu_hole_br_x =  82;   // model bottom-right= Adam's bottom-left  (6.5mm from Adam's left → 86-6.5)
 
-psu_hole_top_z =  150;  // both top holes: 5mm from top  (150 - 5)
-psu_hole_bl_z  =    11.5;  // model bottom-left  = Adam's bottom-right: 7.3mm from bottom
-psu_hole_br_z  =   35.5;  // model bottom-right = Adam's bottom-left:  31mm from bottom
+psu_hole_top_z =  148;  // both top holes: 5mm from top  (150 - 5)
+psu_hole_bl_z  =    10.5;  // model bottom-left  = Adam's bottom-right: 7.3mm from bottom
+psu_hole_br_z  =   34.5;  // model bottom-right = Adam's bottom-left:  31mm from bottom
 
 psu_holes = [
     [ psu_hole_tl_x, psu_hole_top_z ],  // top-left
@@ -104,26 +104,32 @@ pcie_by  = 50;
 gpu_x0   = bx0 + pcie_bx - gpu_xw/2;
 gpu_y0   = by0 + pcie_by - 73;
 
-bkt_cut_w   = gpu_xw + 1;
-bkt_cut_h   = 125;
-bkt_cut_z0  = tw;
-bkt_cut_x0  = gpu_x0 - 0.5;
+// PCIe expansion slot zone — standard ATX 6-slot layout
+// GPU (2-slot 2080 Ti) occupies the rightmost 2 positions (slots 5–6).
+pcie_n      = 6;                              // total slot positions
+pcie_pitch  = 20.32;                          // 0.800" standard ATX pitch
+pcie_bw     = 18.42;                          // slot opening width (0.725")
+pcie_x0     = gpu_x0 - (pcie_n-2)*pcie_pitch;// left edge of slot zone ≈ 12.4mm
+bkt_cut_z0  = tw;                             // slot zone bottom Z
+bkt_cut_h   = 125;                            // total slot zone height (kept for Z refs)
+pcie_oh     = bkt_cut_h - 14;                 // slot opening height = 111mm; 14mm screw-tab above
+pcie_scr_d  = 3.4;                            // M3 clearance — bracket & bar retention screws
 
-ret_bar_w      = bkt_cut_w + 20;
-ret_bar_h      = 12;
-ret_bar_d      = tw + 2;
-ret_screw_d    = 3.4;
-ret_bar_z0     = bkt_cut_z0 + bkt_cut_h-3;
-ret_boss_inset = 8;   // how far bosses protrude INWARD from inner panel face
-
-ret_lip_d   = 8;    // lip protrusion depth — extended to sit over GPU bracket (was 3mm)
-ret_lip_h   = 4;    // lip thickness (Z)
-ret_gpu_screw_d = 3.2;          // M3 clearance for GPU bracket screws
-ret_gpu_screw_sp = 18;        // center-to-center spacing of GPU bracket holes
+// Retention bar — spans all 6 slots, mounts on inner face of rear panel
+pbar_w      = pcie_n * pcie_pitch;            // bar width = 121.92mm
+pbar_h      = 16;                             // bar height (screw-tab zone)
+pbar_d      = tw - 1;                         // bar thickness = 3mm
+pbar_z0     = bkt_cut_z0 + pcie_oh - 1;      // bar bottom Z = 114mm
+pbar_lip_d  = 6;                              // lip protrudes inward — bracket tabs rest on it
+pbar_lip_h  = 4;                              // lip height (Z)
 
 tab_sw  = 18;
 tab_sd  = 5;
 tab_x   = [gpu_x0 + gpu_xw*0.25, gpu_x0 + gpu_xw*0.75];
+
+btn_d    = 16.4;  // 16mm panel-mount power button + 0.4mm clearance
+btn_cx   = 30;   // X: bottom-left, in the solid band below the fans
+btn_cz   = 18;   // Z: center of bottom solid band (fans start at Z≈33mm)
 
 fan_sq   = 120;
 fan_msp  = 105;
@@ -132,6 +138,16 @@ fan1_cx  = tw + 79.0;   //  83mm from tray left — over GPU/PCIe slot
 fan2_cx  = tray_w / 2;  // 222mm — centre, over mid-board
 fan3_cx  = tray_w - tw - 79.0;  // 361mm — over board right + PSU gap
 fan_cz   = rack_h / 2;
+
+fh_w     = 18;                         // handle width in X (fits solid zone left/right of fans)
+fh_d     = 22;                         // protrusion in front of panel face (−Y)
+fh_z0    = fan_cz - (fan_sq-8)/2;     // flush with fan bottom ≈33mm
+fh_z1    = fan_cz + (fan_sq-8)/2;     // flush with fan top ≈145mm
+fh_h     = fh_z1 - fh_z0;             // matches fan height ≈112mm
+fh_ro    = 4;                          // outer corner radius
+fh_wy    = 6;                          // back wall thickness (at panel face)
+fh_wz    = 10;                         // top/bottom wall thickness around finger slot
+fh_xm    = 3;                          // X margin each side of finger slot
 
 io_w     = 165;
 io_h     = 46;
@@ -369,11 +385,19 @@ module atx_standoffs() {
 module front_panel_solid() {
     // Inset by tw on each side — ears fill the gap at X=[0,tw] and X=[tray_w-tw,tray_w]
     // Three 120mm fan cutouts handle all the ventilation — no honeycomb needed here.
+    // Pull handles sit just inside each rail; power button bottom-left below fans.
     difference() {
-        translate([tw, 0, 0]) cube([tray_w-2*tw, tw, rack_h]);
+        union() {
+            translate([tw, 0, 0]) cube([tray_w-2*tw, tw, rack_h]);
+            front_handle(tw);                    // left handle, just inside left rail
+            front_handle(tray_w - tw - fh_w);   // right handle, just inside right rail
+        }
         fan_cutout(fan1_cx, fan_cz);
         fan_cutout(fan2_cx, fan_cz);
         fan_cutout(fan3_cx, fan_cz);
+        // 16mm panel-mount power button — bottom-left corner, below fans
+        translate([btn_cx, -0.1, btn_cz]) rotate([-90,0,0])
+            cylinder(h=tw+0.2, d=btn_d, $fn=32);
     }
 }
 
@@ -398,19 +422,13 @@ module rear_panel_solid() {
     m4_d    = 4.5;  // M4 clearance hole diameter
 
     // Honeycomb zones (all in rear-panel local coords where Y=0 is outer face):
-    //   Zone A: left of PCIe bracket opening — board/VRM area
-    //     x: hc_mg  ..  bkt_cut_x0 - hc_mg
-    //     z: hc_mg  ..  rack_h - hc_mg
-    //   Zone B: between PCIe bracket and IO shield
-    //     x: bkt_cut_x0+bkt_cut_w+hc_mg  ..  io_x0-hc_mg
-    //     z: hc_mg  ..  io_z0-hc_mg  (below IO opening)  AND  io_z0+io_h+hc_mg..rack_h-hc_mg (above)
-    //   Zone C: right of PSU
-    //     x: psu_x0+psu_xw+hc_mg  ..  tray_w-hc_mg
-    //     z: hc_mg  ..  rack_h-hc_mg
+    //   Zone A: left of PCIe slot zone — effectively zero-width with 6-slot array, skipped by guard
+    //   Zone B: between PCIe slot zone and IO shield — ~4mm gap, also skipped by guard
+    //   Zone C: right of PSU  |  Zone D: above IO shield (split at cut_x)
 
     rp_zone_a_x0 = hc_mg;
-    rp_zone_a_x1 = bkt_cut_x0 - hc_mg;
-    rp_zone_b_x0 = bkt_cut_x0 + bkt_cut_w + hc_mg;
+    rp_zone_a_x1 = pcie_x0 - hc_mg;
+    rp_zone_b_x0 = pcie_x0 + pcie_n*pcie_pitch + hc_mg;
     rp_zone_b_x1 = io_x0 - hc_mg;
     rp_zone_c_x0 = psu_x0 + psu_xw + hc_mg;
     rp_zone_c_x1 = tray_w - hc_mg;
@@ -427,8 +445,10 @@ module rear_panel_solid() {
                 translate([psu_x0,       -0.1, tw+psu_c])        cube([psu_xw,          tw+0.2, psu_zh-2*psu_c]);
                 translate([psu_x0+psu_c, -0.1, tw])               cube([psu_xw-2*psu_c, tw+0.2, psu_c]);
                 translate([psu_x0+psu_c, -0.1, tw+psu_zh-psu_c]) cube([psu_xw-2*psu_c, tw+0.2, psu_c]);
-                // PCIe bracket opening
-                translate([bkt_cut_x0, -0.1, bkt_cut_z0]) cube([bkt_cut_w, tw+0.2, bkt_cut_h]);
+                // PCIe expansion slots — 6 openings at standard ATX pitch, dividers between
+                for (i = [0:pcie_n-1])
+                    translate([pcie_x0 + i*pcie_pitch, -0.1, bkt_cut_z0])
+                        cube([pcie_bw, tw+0.2, pcie_oh]);
             }
             // PSU mounting bosses — L-shaped bridges so no boss floats in the opening
             for (h = psu_holes) psu_boss_bridge(h);
@@ -437,10 +457,14 @@ module rear_panel_solid() {
         for (h = psu_holes)
             translate([psu_x0 + h[0], -boss_th-0.1, tw + h[1]])
                 rotate([-90,0,0]) cylinder(h=tw+boss_th+0.2, d=m4_d, $fn=16);
-        // Retainer bar screw holes through rear panel (bosses are separate geometry, inward)
-        for (bx = [bkt_cut_x0-3, bkt_cut_x0+bkt_cut_w+3])
-            translate([bx, -0.1, (ret_bar_z0+ret_bar_h/2)])
-                rotate([-90,0,0]) cylinder(h=tw+0.2, d=ret_screw_d, $fn=12);
+        // Retention bar mounting holes — 3 screws at divider centres, screw-tab zone
+        for (i = [1, 3, 5])
+            translate([pcie_x0 + i*pcie_pitch - 0.95, -0.1, pbar_z0 + pbar_h/2])
+                rotate([-90,0,0]) cylinder(h=tw+0.2, d=pcie_scr_d, $fn=12);
+        // Per-slot bracket thumbscrew holes — 1 per slot at slot-centre X, screw-tab zone
+        for (i = [0:pcie_n-1])
+            translate([pcie_x0 + i*pcie_pitch + pcie_bw/2, -0.1, pbar_z0 + pbar_h/2])
+                rotate([-90,0,0]) cylinder(h=tw+0.2, d=pcie_scr_d, $fn=12);
         // ── Honeycomb venting ───────────────────────────────────────────────────
         // Zone A: left of PCIe bracket opening
         if (rp_zone_a_x1 > rp_zone_a_x0 + hc_mg)
@@ -471,21 +495,6 @@ module rear_panel_solid() {
     }
 }
 
-// GPU retainer bar mounting bosses — protrude INWARD from inner panel face.
-// Screws go: bar (outside) → panel → boss (inside). Bar sits flush on outer face.
-module retainer_bar_bosses() {
-    difference() {
-        union() {
-            // Bosses on the INSIDE (−Y from inner face = tray_d−tw, protrude inward)
-            translate([bkt_cut_x0-7.5,          tray_d-tw-ret_boss_inset, ret_bar_z0+1]) cube([7.5, ret_boss_inset, ret_bar_h-1]);
-            translate([bkt_cut_x0+bkt_cut_w, tray_d-tw-ret_boss_inset, ret_bar_z0+1]) cube([7.5, ret_boss_inset, ret_bar_h-1]);
-        }
-        // Clearance holes drilled from outside (outer face) through panel and full boss depth
-        for (bx = [bkt_cut_x0-3, bkt_cut_x0+bkt_cut_w+3])
-            translate([bx, tray_d-tw-ret_boss_inset-0.1, (ret_bar_z0+ret_bar_h/2)])
-                rotate([-90,0,0]) cylinder(h=tw+ret_boss_inset+0.2, d=ret_screw_d, $fn=12);
-    }
-}
 
 // Rear support lip — world coordinates. Extends behind the rear panel so the tray
 // can rest on a cross-brace or rear rack rails instead of hanging from the ears alone.
@@ -566,25 +575,68 @@ module tray_shell(ear_slots=true) {
     }
 }
 
-module gpu_retainer_bar() {
+// PCIe retention bar — interior piece, presses against inner face of rear panel.
+// Install before cards: 3 M3 screws at divider centres hold the bar to the panel.
+// Lip at Y=0 face (inward) forms a shelf — bracket screw tabs slide under it.
+// Then 6 per-slot thumbscrews secure individual brackets through panel + bar.
+// Assembly position: translate([pcie_x0, tray_d-tw-pbar_d, pbar_z0])
+// Print orientation: flat face (Y=0) on the bed.
+module pcie_retention_bar() {
     difference() {
         union() {
-            // Main bar body — screws to rear panel bosses
-            cube([ret_bar_w, ret_bar_d, ret_bar_h]);
-            // Lip at BOTTOM of bar (z=0), protruding in +Y — sits on top of GPU bracket
-            // Bar is "upside down" vs original: lip hangs down over the bracket edge
-            translate([0, ret_bar_d, 0]) cube([ret_bar_w, ret_lip_d, ret_lip_h]);
+            cube([pbar_w, pbar_d, pbar_h]);
+            // Lip at bottom protrudes inward (−Y from inner face) — bracket tabs rest here
+            translate([0, -pbar_lip_d, 0]) cube([pbar_w, pbar_lip_d, pbar_lip_h]);
         }
-        // Panel mounting screw holes (through bar body, front-to-back in Y)
-        for (bx = [7, ret_bar_w-7])
-            translate([bx, -0.1, ret_bar_h/2]) rotate([-90,0,0]) {
-                cylinder(h=ret_bar_d+0.2, d=ret_screw_d, $fn=12);
-                cylinder(h=3, d1=6, d2=ret_screw_d, $fn=16);
-            }
-        // GPU bracket screw holes — through lip in Z, 20.5mm apart, centered on bar
-        for (gx = [ret_bar_w/2 - ret_gpu_screw_sp/2, ret_bar_w/2 + ret_gpu_screw_sp/2])
-            translate([gx+5, ret_bar_d + ret_lip_d/2, -0.1])
-                cylinder(h=ret_lip_h+0.2, d=ret_gpu_screw_d, $fn=12);
+        // 3 bar mounting holes centred in dividers between slots (i=1,3,5)
+        for (i = [1, 3, 5])
+            translate([i*pcie_pitch - 0.95, -0.1, pbar_h/2])
+                rotate([-90,0,0]) cylinder(h=pbar_d+0.2, d=pcie_scr_d, $fn=12);
+        // 6 per-slot bracket thumbscrew holes at slot-centre X
+        for (i = [0:pcie_n-1])
+            translate([i*pcie_pitch + pcie_bw/2, -0.1, pbar_h/2])
+                rotate([-90,0,0]) cylinder(h=pbar_d+0.2, d=pcie_scr_d, $fn=12);
+    }
+}
+
+// Blank slot cover — print one per unused PCIe slot position.
+// Drop in from outside, screw tab at top captured by retention bar lip.
+// Print floor-face-down (the flat back face is the floor).
+module pcie_slot_cover() {
+    sc_w  = pcie_bw - 0.4;              // 0.2mm clearance per side
+    sc_h  = pcie_oh + 10;               // full height: opening + screw tab stub
+    sc_d  = tw;                          // matches panel wall thickness
+    vent_w = sc_w - 4;                  // louvered vent width
+    difference() {
+        cube([sc_w, sc_d, sc_h]);
+        // Bracket thumbscrew hole in screw tab zone
+        translate([sc_w/2, -0.1, pcie_oh + 5])
+            rotate([-90,0,0]) cylinder(h=sc_d+0.2, d=pcie_scr_d, $fn=12);
+        // Louvered vent slots — 7mm tall slots at 13mm pitch across lower 90% of opening
+        for (z = [8 : 13 : pcie_oh - 8])
+            translate([2, -0.1, z]) cube([vent_w, sc_d+0.2, 7]);
+    }
+}
+
+// Pull handle — sits on the front panel just inside each side rail, protrudes in −Y.
+// Rounded-rectangle body with a capsule finger slot that opens on the left/right faces.
+// x0 = left edge of the handle in world X.
+// Slot drills through in X — slip fingers in from the inner side face toward the fan.
+module front_handle(x0) {
+    slot_r  = (fh_w - 2*fh_xm) / 2;        // slot radius = 7mm
+    slot_ch = fh_h/2 - fh_wz - slot_r;      // capsule half-height of centre section = 39mm
+    slot_yc = -(fh_d / 2);                  // slot Y centre = mid-depth; 4mm walls front/back
+    difference() {
+        // Rounded-rectangle body: back face at Y=0 (panel outer face), front at Y=−fh_d
+        hull()
+            for (dx = [fh_ro, fh_w - fh_ro], dz = [fh_ro, fh_h - fh_ro])
+                translate([x0 + dx, -fh_d, fh_z0 + dz])
+                    rotate([-90,0,0]) cylinder(h=fh_d, r=fh_ro, $fn=24);
+        // Capsule finger slot: drills through in X, openings on left and right side faces
+        hull()
+            for (dz = [slot_ch, -slot_ch])
+                translate([x0 - 0.1, slot_yc, fh_z0 + fh_h/2 + dz])
+                    rotate([0,90,0]) cylinder(h=fh_w + 0.2, r=slot_r, $fn=32);
     }
 }
 
@@ -629,11 +681,10 @@ module assembly() {
         psu_cradle();
         front_panel_solid();
         translate([0, tray_d-tw, 0]) rear_panel_solid();
-        retainer_bar_bosses();
         rear_support_lip(0, cut_x);
         rear_support_lip(cut_x, tray_w);
-        translate([bkt_cut_x0-(ret_bar_w-bkt_cut_w)/2, tray_d, ret_bar_z0])
-            gpu_retainer_bar();  // bar body sits above bracket top; lip at z=0 drops over it
+        translate([pcie_x0, tray_d-tw-pbar_d, pbar_z0])
+            pcie_retention_bar();  // interior bar — brackets insert from inside, tabs rest on lip
     }
     color("dimgray") {
         // Ears fused into tray_FL/FR for printing — shown here for assembly preview only
@@ -707,7 +758,6 @@ module tray_RL() {
             xj_floor_L(cut_y, tray_d);  // floor tabs → RR
             yj_floor_R(0, cut_x);        // floor tabs → FL
             rear_panel_tongue();          // panel tongue → RR
-            retainer_bar_bosses();        // outside mask — protrude beyond tray_d
             rear_support_lip(0, cut_x);  // outside mask — extends beyond tray_d
         }
         xj_floor_L_sock(cut_y, tray_d); // floor sockets for RR's tabs
@@ -747,11 +797,12 @@ module tray_RR() {
 // Uncomment ONE section → F6 → Export as STL.  Print floor-face-down.
 // tray_FL and tray_FR include their rack ears — no separate ear print needed (Bambu P1S bed).
 
-//assembly();
+assembly();
 
 //tray_FL();                              // left front half + left ear  (241×178mm)
 //translate([-cut_x, 0, 0]) tray_FR();   // right front half + right ear (241×178mm)
-translate([0, -cut_y, 0])      tray_RL();
+//translate([0, -cut_y, 0])      tray_RL();
 //translate([-cut_x, -cut_y, 0]) tray_RR();
-//gpu_retainer_bar();
+//pcie_retention_bar();               // interior retention bar — install before cards; 3×M3 to panel + 6×thumbscrews
+//pcie_slot_cover();                  // blank cover — print 4× for unused slots
 //rack_ear();   // standalone ear (no longer needed — fused into FL/FR)
