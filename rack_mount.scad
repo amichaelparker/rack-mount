@@ -853,34 +853,69 @@ module tray_RR() {
 }
 
 // ─── STANDOFF TEST JIGS ────────────────────────────────────────────────────────
-// Quick-print position-verification jigs: 2mm base + standoffs only (~1-2 hr print).
-// Place jig flat on table, set board on top, verify holes align before committing to
-// a full 9-hour section print.
+// Two-piece jig: print separately, snap together at the same X=cut_x seam the real
+// case uses.  Assembled geometry encodes all 9 standoff positions — no manual
+// measuring to align the pieces.  Place board on top, verify all holes seat.
+//
+// jig_L: 222×247mm  (~1-2 hr)   jig_R: ~97×247mm   (~30 min)
+// Both print floor-face-down, fit on the P1S 256mm bed.
+//
+// Assembly: hold pieces flat, slide jig_R tabs into jig_L sockets from the side
+// (same motion as assembling the case floor sections).
 
 module standoff_jig_L() {
     jig_th = 2;
     pad    = 10;
-    // Left + middle columns: A,C,G,H,K,L (board X = 16.51 / 140.97)
+    // Y offset: shift jig so lowest standoff (K, board Y=6.35) sits pad mm from edge.
+    y_off  = by0 + atx_holes[6][1] - pad;  // ≈89.5mm
+    y_h    = by0 + atx_holes[0][1] + pad - y_off;  // ≈247mm
+    n      = floor(y_h / fj_w);
+
     L_holes = [atx_holes[0], atx_holes[1], atx_holes[3], atx_holes[4], atx_holes[6], atx_holes[7]];
-    jig_x = atx_holes[1][0] + pad;   // 140.97 + 10 ≈ 151mm
-    jig_y = atx_holes[0][1] + pad;   // 233.68 + 10 ≈ 244mm
-    cube([jig_x, jig_y, jig_th]);
+
+    difference() {
+        union() {
+            cube([cut_x, y_h, jig_th]);
+            // box joint tabs on right edge: odd-index, protrude +X
+            for (i = [0:n-1]) if (i%2 == 1)
+                translate([cut_x, i*fj_w, 0]) cube([fj_d, fj_w, jig_th]);
+        }
+        // sockets for jig_R's tabs: even-index, cut into right edge
+        for (i = [0:n-1]) if (i%2 == 0)
+            translate([cut_x - fj_d - 0.01, i*fj_w - fj_fit, -0.01])
+                cube([fj_d + 0.02, fj_w + 2*fj_fit, jig_th + 0.02]);
+    }
     for (pt = L_holes)
-        translate([pt[0], pt[1], jig_th]) standoff();
+        translate([bx0 + pt[0], by0 + pt[1] - y_off, jig_th]) standoff();
 }
 
 module standoff_jig_R() {
-    jig_th = 2;
-    pad    = 10;
-    // Right column only: F,J,M (board X = 298.45) — shifted so column lands at X=pad.
-    // To align on real board: jig left edge goes at X = 298.45 - pad = 288.45mm from board left.
+    jig_th   = 2;
+    pad      = 10;
+    y_off    = by0 + atx_holes[6][1] - pad;  // same origin as jig_L
+    y_h      = by0 + atx_holes[0][1] + pad - y_off;
+    n        = floor(y_h / fj_w);
+    // Plate starts at X=fj_d so the leftward tabs land at X=0 (printable without negatives).
+    plate_x0 = fj_d;
+    plate_w  = (bx0 + atx_holes[2][0] + pad) - cut_x;  // ≈90mm
+
     R_holes = [atx_holes[2], atx_holes[5], atx_holes[8]];
-    x_off   = atx_holes[2][0] - pad;   // 288.45mm shift
-    jig_x   = pad + soff_od + pad;     // ~27mm wide
-    jig_y   = atx_holes[2][1] + pad;   // 220.98 + 10 ≈ 231mm
-    cube([jig_x, jig_y, jig_th]);
+
+    difference() {
+        union() {
+            translate([plate_x0, 0, 0]) cube([plate_w, y_h, jig_th]);
+            // box joint tabs on left edge: even-index, protrude -X from seam face
+            for (i = [0:n-1]) if (i%2 == 0)
+                translate([0, i*fj_w, 0]) cube([fj_d, fj_w, jig_th]);
+        }
+        // sockets for jig_L's tabs: odd-index, cut into left edge of plate
+        for (i = [0:n-1]) if (i%2 == 1)
+            translate([plate_x0 - 0.01, i*fj_w - fj_fit, -0.01])
+                cube([fj_d + 0.02, fj_w + 2*fj_fit, jig_th + 0.02]);
+    }
+    // standoffs: F,J,M shifted into jig_R coordinate space
     for (pt = R_holes)
-        translate([pt[0] - x_off, pt[1], jig_th]) standoff();
+        translate([bx0 + pt[0] - cut_x + plate_x0, by0 + pt[1] - y_off, jig_th]) standoff();
 }
 
 // ─── RENDER SELECTION ─────────────────────────────────────────────────────────
