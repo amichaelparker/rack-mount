@@ -47,15 +47,15 @@ soff_id  = 3.2;
 // Column X:  A/G/K = 16.51   C/H/L = 140.97   F/J/M = 298.45
 // Row    Y:  K/L/M =  6.35   G/H/J =  66.04   F = 220.98   A/C = 233.68
 atx_holes = [
-  [  17.5, 231],  // A: 0.40" from IO, left column
-  [ 143.5, 229.5],  // C: 0.40" from IO, center column
-  [ 299.45, 210],  // F: 0.90" from IO, right column
-  [  18.5,  75.5],  // G: middle row, left column
-  [ 143.5,  75.5],  // H: middle row, center column
-  [ 299.45,  75.5],  // J: middle row, right column
-  [  18.5,   4],  // K: 0.25" from front, left column
-  [ 143.5,   4],  // L: 0.25" from front, center column
-  [ 299.45,   4],  // M: 0.25" from front, right column
+  [ 16.51, 233.68],  // A
+  [140.97, 233.68],  // C
+  [298.45, 220.98],  // F
+  [ 16.51,  66.04],  // G
+  [140.97,  66.04],  // H
+  [298.45,  66.04],  // J
+  [ 16.51,   6.35],  // K
+  [140.97,   6.35],  // L
+  [298.45,   6.35],  // M
 ];
 
 bx0 = tw;
