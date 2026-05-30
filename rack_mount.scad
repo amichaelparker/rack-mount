@@ -157,11 +157,22 @@ io_z0    = tw + soff_h;
 cut_x    = tray_w / 2;   // ≈ 222 mm
 cut_y    = tray_d / 2;   // 200 mm
 
-// Joint geometry
+// Joint geometry — floor box joints (kept; easy to engage flat-on-table)
 fj_d     = 6;     // tab depth (protrusion past seam face)
 fj_w     = 18;    // tab width along seam
 fj_fit   = 0.25;  // socket clearance per side
-fj_th    = 8;     // panel/rail tab height (for the wall-face tabs)
+
+// Panel/rail seam bolt joint parameters (replaces tongue-and-groove)
+// M3×20 SHCS through clearance boss; M3 hex nut drops into nut-trap from above.
+bj_w    = 14;   // clearance-side boss width along seam (bolt head side)
+bj_nt_d = 7;    // nut-trap boss depth along seam (nut side)
+bj_d    = 10;   // boss depth into case interior (perpendicular to panel/rail)
+bj_h    = 16;   // boss height in Z
+bj_md   = 3.4;  // M3 clearance hole diameter
+bj_csd  = 6.5;  // M3 socket-head counterbore diameter
+bj_csz  = 3.5;  // counterbore depth
+bj_nw   = 5.8;  // M3 hex nut flat-to-flat + 0.3mm clearance
+bj_nh   = 2.6;  // M3 hex nut height + 0.2mm clearance
 
 // Ear interlock geometry
 etab_d   = tw;    // tab depth = wall thickness — slot goes flush through rail, clearly visible
@@ -284,64 +295,104 @@ module yj_floor_R_sock(x0, x1) {    // REAR sockets (receive F tabs)
             cube([fj_w+2*fj_fit, fj_d+0.02, tw+0.02]);
 }
 
-// ── Front panel seam at X=cut_x ───────────────────────────────────────────────
-// Panel is tw=4mm thick in Y.  Tabs sit within that thickness, at 2 Z heights.
-// FL has the tongue; FR has the groove.
-// Tab Z positions are near top/bottom of panel — the centre fan (fan2) sits exactly
-// at cut_x and its cutout spans z=27.9–149.9mm, so tabs must be outside that range.
-fp_tab_z = [15, rack_h - 15];   // z=15mm (bottom) and z=162.8mm (top) — both clear of fan
-
-module front_panel_tongue() {
-    for (z = fp_tab_z)
-        translate([cut_x, 0, z-fj_th/2]) cube([fj_d, tw, fj_th]);
-}
-module front_panel_groove() {
-    for (z = fp_tab_z)
-        translate([cut_x-0.01, -0.1, z-fj_th/2-fj_fit])
-            cube([fj_d+0.12, tw+0.2, fj_th+2*fj_fit]);
-}
-
-// ── Rear panel seam at X=cut_x ────────────────────────────────────────────────
-// RL has the tongue; RR has the groove.
-// Tab Z positions are in the solid border zones above and below the honeycomb.
-// Zone D (above IO shield) spans io_z0+io_h+hc_mg=68mm to rack_h-hc_mg=165.8mm.
-// Three tabs: bottom (6mm), below Zone D in the 12mm margin (62mm), top (171.8mm).
+// ── Seam bolt-joint Z positions ───────────────────────────────────────────────
+// Front panel: 2 bolts, clear of fan zone (Z≈28–150mm).
+fp_tab_z = [15, rack_h - 15];
+// Rear panel: 3 bolts in solid border bands (below IO, above IO, top).
 rp_tab_z = [hc_mg/2, io_z0 + io_h + hc_mg/2, rack_h - hc_mg/2];
+// Left/right rails: 2 bolts at ⅓ and ⅔ height.
+lr_tab_z = [rack_h * 0.33, rack_h * 0.67];
 
-module rear_panel_tongue() {
-    for (z = rp_tab_z)
-        translate([cut_x, tray_d-tw, z-fj_th/2]) cube([fj_d, tw, fj_th]);
+// ─── SEAM BOLT-JOINT MODULES ─────────────────────────────────────────────────
+// Replaces tongue-and-groove on all panel and rail seams.
+// Each seam gets one clearance-side boss (bolt head counterbore on interior face)
+// and one nut-trap boss (hex slot open at +Z — drop nut in before assembly).
+// Bolt: M3×20 SHCS.  Floor box joints unchanged; they handle in-plane shear.
+
+// ── Front panel seam (X=cut_x, bolt in X, boss protrudes +Y from panel) ──────
+
+module fp_seam_bolt_L(z) {    // FL — clearance + head counterbore
+    difference() {
+        translate([cut_x - bj_w, tw, z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
+        translate([cut_x - bj_w - 0.1, tw + bj_d/2, z]) rotate([0,90,0]) {
+            cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
+            cylinder(h=bj_csz,   d=bj_csd, $fn=24);
+        }
+    }
 }
-module rear_panel_groove() {
-    for (z = rp_tab_z)
-        translate([cut_x-0.01, tray_d-tw-0.1, z-fj_th/2-fj_fit])
-            cube([fj_d+0.12, tw+0.2, fj_th+2*fj_fit]);
+module fp_seam_bolt_R(z) {    // FR — nut-trap slot open at +Z
+    difference() {
+        translate([cut_x, tw, z - bj_h/2]) cube([bj_nt_d, bj_d, bj_h]);
+        // clearance hole
+        translate([cut_x - 0.1, tw + bj_d/2, z]) rotate([0,90,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        // hex nut slot — open at top so nut drops in before assembly
+        translate([cut_x, tw + bj_d/2 - bj_nw/2, z - bj_nh/2])
+            cube([bj_nh, bj_nw, bj_h/2 + bj_nh/2 + 0.1]);
+    }
 }
 
-// ── Left rail seam at Y=cut_y ─────────────────────────────────────────────────
-// Rail is tw=3mm wide in X.  FL has tongue; RL has groove.
+// ── Rear panel seam (X=cut_x, bolt in X, boss protrudes −Y from panel) ───────
 
-module left_rail_tongue() {
-    for (z=[rack_h*0.33, rack_h*0.67])
-        translate([0, cut_y, z-fj_th/2]) cube([tw, fj_d, fj_th]);
+module rp_seam_bolt_L(z) {    // RL — clearance + head counterbore
+    difference() {
+        translate([cut_x - bj_w, tray_d - tw - bj_d, z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
+        translate([cut_x - bj_w - 0.1, tray_d - tw - bj_d/2, z]) rotate([0,90,0]) {
+            cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
+            cylinder(h=bj_csz,   d=bj_csd, $fn=24);
+        }
+    }
 }
-module left_rail_groove() {
-    for (z=[rack_h*0.33, rack_h*0.67])
-        translate([-0.1, cut_y-0.01, z-fj_th/2-fj_fit])
-            cube([tw+0.2, fj_d+0.12, fj_th+2*fj_fit]);
+module rp_seam_bolt_R(z) {    // RR — nut-trap slot open at +Z
+    difference() {
+        translate([cut_x, tray_d - tw - bj_d, z - bj_h/2]) cube([bj_nt_d, bj_d, bj_h]);
+        translate([cut_x - 0.1, tray_d - tw - bj_d/2, z]) rotate([0,90,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        translate([cut_x, tray_d - tw - bj_d/2 - bj_nw/2, z - bj_nh/2])
+            cube([bj_nh, bj_nw, bj_h/2 + bj_nh/2 + 0.1]);
+    }
 }
 
-// ── Right rail seam at Y=cut_y ────────────────────────────────────────────────
-// FR has tongue; RR has groove.
+// ── Left rail seam (Y=cut_y, bolt in Y, boss protrudes +X from rail) ─────────
 
-module right_rail_tongue() {
-    for (z=[rack_h*0.33, rack_h*0.67])
-        translate([tray_w-tw, cut_y, z-fj_th/2]) cube([tw, fj_d, fj_th]);
+module lr_seam_bolt_F(z) {    // FL — clearance + head counterbore
+    difference() {
+        translate([tw, cut_y - bj_w, z - bj_h/2]) cube([bj_d, bj_w, bj_h]);
+        translate([tw + bj_d/2, cut_y - bj_w - 0.1, z]) rotate([-90,0,0]) {
+            cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
+            cylinder(h=bj_csz,   d=bj_csd, $fn=24);
+        }
+    }
 }
-module right_rail_groove() {
-    for (z=[rack_h*0.33, rack_h*0.67])
-        translate([tray_w-tw-0.1, cut_y-0.01, z-fj_th/2-fj_fit])
-            cube([tw+0.2, fj_d+0.12, fj_th+2*fj_fit]);
+module lr_seam_bolt_R(z) {    // RL — nut-trap slot open at +Z
+    difference() {
+        translate([tw, cut_y, z - bj_h/2]) cube([bj_d, bj_nt_d, bj_h]);
+        translate([tw + bj_d/2, cut_y - 0.1, z]) rotate([-90,0,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        translate([tw + bj_d/2 - bj_nw/2, cut_y, z - bj_nh/2])
+            cube([bj_nw, bj_nh, bj_h/2 + bj_nh/2 + 0.1]);
+    }
+}
+
+// ── Right rail seam (Y=cut_y, bolt in Y, boss protrudes −X from rail) ────────
+
+module rr_seam_bolt_F(z) {    // FR — clearance + head counterbore
+    difference() {
+        translate([tray_w - tw - bj_d, cut_y - bj_w, z - bj_h/2]) cube([bj_d, bj_w, bj_h]);
+        translate([tray_w - tw - bj_d/2, cut_y - bj_w - 0.1, z]) rotate([-90,0,0]) {
+            cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
+            cylinder(h=bj_csz,   d=bj_csd, $fn=24);
+        }
+    }
+}
+module rr_seam_bolt_R(z) {    // RR — nut-trap slot open at +Z
+    difference() {
+        translate([tray_w - tw - bj_d, cut_y, z - bj_h/2]) cube([bj_d, bj_nt_d, bj_h]);
+        translate([tray_w - tw - bj_d/2, cut_y - 0.1, z]) rotate([-90,0,0])
+            cylinder(h=bj_nt_d+0.2, d=bj_md, $fn=16);
+        translate([tray_w - tw - bj_d/2 - bj_nw/2, cut_y, z - bj_nh/2])
+            cube([bj_nw, bj_nh, bj_h/2 + bj_nh/2 + 0.1]);
+    }
 }
 
 // ── Ear interlocks ────────────────────────────────────────────────────────────
@@ -700,13 +751,15 @@ module tray_FL() {
     difference() {
         union() {
             intersection() {
-                union() { tray_shell(ear_slots=false); front_panel_solid(); atx_standoffs(); }
+                union() {
+                    tray_shell(ear_slots=false); front_panel_solid(); atx_standoffs();
+                    for (z = fp_tab_z) fp_seam_bolt_L(z);  // front panel bolt bosses → FR
+                    for (z = lr_tab_z) lr_seam_bolt_F(z);  // left rail bolt bosses   → RL
+                }
                 cube([cut_x, cut_y, rack_h+1]);
             }
             xj_floor_L(0, cut_y);       // floor tabs → FR
             yj_floor_F(0, cut_x);       // floor tabs → RL
-            front_panel_tongue();        // panel tongue → FR
-            left_rail_tongue();          // rail tongue  → RL
             // Left rack ear fused in — no separate ear piece needed
             translate([-ear_w, 0, 0]) rack_ear();
             translate([0, 0, tw]) cube([tw, tw, rack_h-tw]);  // front-face gap fill
@@ -725,19 +778,21 @@ module tray_FR() {
     difference() {
         union() {
             intersection() {
-                union() { tray_shell(ear_slots=false); front_panel_solid(); psu_cradle(); atx_standoffs(); }
+                union() {
+                    tray_shell(ear_slots=false); front_panel_solid(); psu_cradle(); atx_standoffs();
+                    for (z = fp_tab_z) fp_seam_bolt_R(z);  // front panel bolt bosses → FL
+                    for (z = lr_tab_z) rr_seam_bolt_F(z);  // right rail bolt bosses  → RR
+                }
                 translate([cut_x,0,0]) cube([tray_w-cut_x, cut_y, rack_h+1]);
             }
             xj_floor_R(0, cut_y);       // floor tabs → FL
             yj_floor_F(cut_x, tray_w);  // floor tabs → RR
-            right_rail_tongue();         // rail tongue → RR
             // Right rack ear fused in — no separate ear piece needed
             translate([tray_w, 0, 0]) rack_ear();
             translate([tray_w-tw, 0, tw]) cube([tw, tw, rack_h-tw]);  // front-face gap fill
         }
         xj_floor_R_sock(0, cut_y);      // floor sockets for FL's tabs
         yj_floor_F_sock(cut_x, tray_w); // floor sockets for RR's tabs
-        front_panel_groove();            // panel groove receives FL's tongue
     }
 }
 
@@ -750,17 +805,17 @@ module tray_RL() {
                     tray_shell();
                     atx_standoffs();
                     translate([0, tray_d-tw, 0]) rear_panel_solid();
+                    for (z = rp_tab_z) rp_seam_bolt_L(z);  // rear panel bolt bosses → RR
+                    for (z = lr_tab_z) lr_seam_bolt_R(z);  // left rail bolt bosses  → FL
                 }
                 translate([0,cut_y,0]) cube([cut_x, tray_d-cut_y, rack_h+1]);
             }
             xj_floor_L(cut_y, tray_d);  // floor tabs → RR
             yj_floor_R(0, cut_x);        // floor tabs → FL
-            rear_panel_tongue();          // panel tongue → RR
             rear_support_lip(0, cut_x);  // outside mask — extends beyond tray_d
         }
         xj_floor_L_sock(cut_y, tray_d); // floor sockets for RR's tabs
         yj_floor_R_sock(0, cut_x);       // floor sockets for FL's tabs
-        left_rail_groove();               // rail groove receives FL's tongue
         // Remove G standoff — it's floating here (floor cut by yj socket). Moved to FL's tab.
         translate([bx0 + atx_holes[3][0], by0 + atx_holes[3][1], tw])
             cylinder(h=soff_h+0.1, d=soff_od+0.1, $fn=24);
@@ -777,6 +832,8 @@ module tray_RR() {
                     atx_standoffs();
                     psu_cradle();
                     translate([0, tray_d-tw, 0]) rear_panel_solid();
+                    for (z = rp_tab_z) rp_seam_bolt_R(z);  // rear panel bolt bosses → RL
+                    for (z = lr_tab_z) rr_seam_bolt_R(z);  // right rail bolt bosses → FR
                 }
                 translate([cut_x,cut_y,0]) cube([tray_w-cut_x, tray_d-cut_y, rack_h+1]);
             }
@@ -786,8 +843,6 @@ module tray_RR() {
         }
         xj_floor_R_sock(cut_y, tray_d); // floor sockets for RL's tabs
         yj_floor_R_sock(cut_x, tray_w); // floor sockets for FR's tabs
-        rear_panel_groove();              // panel groove receives RL's tongue
-        right_rail_groove();              // rail groove receives FR's tongue
     }
 }
 
