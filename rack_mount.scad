@@ -298,8 +298,8 @@ module yj_floor_R_sock(x0, x1) {    // REAR sockets (receive F tabs)
 // ── Seam bolt-joint Z positions ───────────────────────────────────────────────
 // Front panel: 2 bolts, clear of fan zone (Z≈28–150mm).
 fp_tab_z = [15, rack_h - 15];
-// Rear panel: 3 bolts in solid border bands (below IO, above IO, top).
-rp_tab_z = [hc_mg/2, io_z0 + io_h + hc_mg/2, rack_h - hc_mg/2];
+// Rear panel: 2 bolts — floor box joints cover the bottom; top clamped inside rack_h.
+rp_tab_z = [io_z0 + io_h + hc_mg/2, rack_h - bj_h/2 - 2];
 // Left/right rails: 2 bolts at ⅓ and ⅔ height.
 lr_tab_z = [rack_h * 0.33, rack_h * 0.67];
 
@@ -336,7 +336,7 @@ module fp_seam_bolt_R(z) {    // FR — nut-trap slot open at +Z
 
 module rp_seam_bolt_L(z) {    // RL — clearance + head counterbore
     difference() {
-        translate([cut_x - bj_w, tray_d - tw - bj_d, z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
+        translate([cut_x - bj_w, tray_d - tw - bj_d, 2+z - bj_h/2]) cube([bj_w, bj_d, bj_h]);
         translate([cut_x - bj_w - 0.1, tray_d - tw - bj_d/2, z]) rotate([0,90,0]) {
             cylinder(h=bj_w+0.2, d=bj_md, $fn=16);
             cylinder(h=bj_csz,   d=bj_csd, $fn=24);
@@ -850,11 +850,11 @@ module tray_RR() {
 // Uncomment ONE section → F6 → Export as STL.  Print floor-face-down.
 // tray_FL and tray_FR include their rack ears — no separate ear print needed (Bambu P1S bed).
 
-assembly();
+//assembly();
 
 //tray_FL();                              // left front half + left ear  (241×178mm)
 //translate([-cut_x, 0, 0]) tray_FR();   // right front half + right ear (241×178mm)
-//translate([0, -cut_y, 0])      tray_RL();
+translate([0, -cut_y, 0])      tray_RL();
 //translate([-cut_x, -cut_y, 0]) tray_RR();
 //pcie_retention_bar();               // interior retention bar — install before cards; 3×M3 to panel + 6×thumbscrews
 //pcie_slot_cover();                  // blank cover — print 4× for unused slots
