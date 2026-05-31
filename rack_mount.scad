@@ -49,13 +49,13 @@ soff_id  = 3.2;
 atx_holes = [
   [ 16.51, 233.68],  // A
   [140.97, 233.68],  // C
-  [298.45, 220.98],  // F
-  [ 16.51,  66.04],  // G
-  [140.97,  66.04],  // H
-  [298.45,  66.04],  // J
-  [ 16.51,   6.35],  // K
-  [140.97,   6.35],  // L
-  [298.45,   6.35],  // M
+  [298.45, 210],  // F
+  [ 16.51,  77.04],  // G
+  [140.97,  77.04],  // H
+  [298.45,  77.04],  // J
+  [ 16.2,   5.35],  // K
+  [140.47,   5.35],  // L
+  [298,   5.35],  // M
 ];
 
 bx0 = tw;
@@ -443,12 +443,10 @@ module atx_standoffs() {
 module front_panel_solid() {
     // Inset by tw on each side — ears fill the gap at X=[0,tw] and X=[tray_w-tw,tray_w]
     // Three 120mm fan cutouts handle all the ventilation — no honeycomb needed here.
-    // Pull handles sit just inside each rail; power button bottom-left below fans.
+    // Pull handles added directly to each section outside the intersection — see tray_FL/FR.
     difference() {
         union() {
             translate([tw, 0, 0]) cube([tray_w-2*tw, tw, rack_h]);
-            front_handle(tw);                    // left handle, just inside left rail
-            front_handle(tray_w - tw - fh_w);   // right handle, just inside right rail
         }
         fan_cutout(fan1_cx, fan_cz);
         fan_cutout(fan2_cx, fan_cz);
@@ -769,6 +767,8 @@ module tray_FL() {
             // Left rack ear fused in — no separate ear piece needed
             translate([-ear_w, 0, 0]) rack_ear();
             translate([0, 0, tw]) cube([tw, tw, rack_h-tw]);  // front-face gap fill
+            // Handle outside intersection — protrudes in -Y so intersection cube clips it otherwise
+            front_handle(tw);
             // G standoff (atx_holes[3]) lands in RL's yj socket zone and floats there.
             // Place it here on FL's tab instead — it sits squarely on the i=1 tab (X=18–36, Y=175–181).
             translate([bx0 + atx_holes[3][0], by0 + atx_holes[3][1], tw]) standoff();
@@ -796,9 +796,17 @@ module tray_FR() {
             // Right rack ear fused in — no separate ear piece needed
             translate([tray_w, 0, 0]) rack_ear();
             translate([tray_w-tw, 0, tw]) cube([tw, tw, rack_h-tw]);  // front-face gap fill
+            // Handle outside intersection — protrudes in -Y so intersection cube clips it otherwise
+            front_handle(tray_w - tw - fh_w);
+            // J standoff (atx_holes[5]) sits at the lip of the yj_floor_F_sock groove (i=4,
+            // X≈294–312). Pulled outside the intersection so sockets can't undercut its base.
+            translate([bx0 + atx_holes[5][0], by0 + atx_holes[5][1], tw]) standoff();
         }
         xj_floor_R_sock(0, cut_y);      // floor sockets for FL's tabs
         yj_floor_F_sock(cut_x, tray_w); // floor sockets for RR's tabs
+        // Remove J from inner intersection result — now placed explicitly above
+        translate([bx0 + atx_holes[5][0], by0 + atx_holes[5][1], tw])
+            cylinder(h=soff_h+0.1, d=soff_od+0.1, $fn=24);
     }
 }
 
@@ -818,7 +826,7 @@ module tray_RL() {
             }
             xj_floor_L(cut_y, tray_d);  // floor tabs → RR
             yj_floor_R(0, cut_x);        // floor tabs → FL
-            rear_support_lip(0, cut_x);  // outside mask — extends beyond tray_d
+            //rear_support_lip(0, cut_x);  // outside mask — extends beyond tray_d
         }
         xj_floor_L_sock(cut_y, tray_d); // floor sockets for RR's tabs
         yj_floor_R_sock(0, cut_x);       // floor sockets for FL's tabs
@@ -845,10 +853,13 @@ module tray_RR() {
             }
             xj_floor_R(cut_y, tray_d);  // floor tabs → RL
             yj_floor_R(cut_x, tray_w);  // floor tabs → FR
-            rear_support_lip(cut_x, tray_w); // outside mask — extends beyond tray_d
+            //rear_support_lip(cut_x, tray_w); // outside mask — extends beyond tray_d
         }
         xj_floor_R_sock(cut_y, tray_d); // floor sockets for RL's tabs
         yj_floor_R_sock(cut_x, tray_w); // floor sockets for FR's tabs
+        // Precautionary: J standoff lives in FR outer union; clear any remnant here
+        translate([bx0 + atx_holes[5][0], by0 + atx_holes[5][1], tw])
+            cylinder(h=soff_h+0.1, d=soff_od+0.1, $fn=24);
     }
 }
 
@@ -936,8 +947,8 @@ module standoff_jig_R() {
 //assembly();
 
 //tray_FL();                              // left front half + left ear  (241×178mm)
-//translate([-cut_x, 0, 0]) tray_FR();   // right front half + right ear (241×178mm)
-translate([0, -cut_y, 0])      tray_RL();
+translate([-cut_x, 0, 0]) tray_FR();   // right front half + right ear (241×178mm)
+//translate([0, -cut_y, 0])      tray_RL();
 //translate([-cut_x, -cut_y, 0]) tray_RR();
 //pcie_retention_bar();               // interior retention bar — install before cards; 3×M3 to panel + 6×thumbscrews
 //pcie_slot_cover();                  // blank cover — print 4× for unused slots
