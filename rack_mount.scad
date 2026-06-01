@@ -172,8 +172,8 @@ bj_h    = 16;   // boss height in Z
 bj_md   = 3.4;  // M3 clearance hole diameter
 bj_csd  = 6.5;  // M3 socket-head counterbore diameter
 bj_csz  = 3.5;  // counterbore depth
-bj_nw   = 5.8;  // M3 hex nut flat-to-flat + 0.3mm clearance
-bj_nh   = 2.6;  // M3 hex nut height + 0.2mm clearance
+bj_nw   = 6.1;  // M3 hex nut flat-to-flat + 0.6mm clearance
+bj_nh   = 3.0;  // M3 hex nut height + 0.6mm clearance
 
 // Ear interlock geometry
 etab_d   = tw;    // tab depth = wall thickness — slot goes flush through rail, clearly visible
